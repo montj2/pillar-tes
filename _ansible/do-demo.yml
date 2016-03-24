@@ -1,0 +1,24 @@
+---
+- hosts: do-demo
+
+  vars:
+    # DO keys set on localhost shell. Safe for git commits.
+    do_demo_token: "{{ lookup('env','DO_DEMO_TOKEN') }}"
+
+  tasks:
+    # Generate local keys for upload to DO
+    - name: "Ensure local SSH key exists"
+      user:
+        name: "{{ ansible_user_id }}"
+        generate_ssh_key: yes
+        ssh_key_file: .ssh/do-demo
+
+    - name: "Ensure remote DO SSH keys exist"
+      digital_ocean:
+        state: present
+        command: ssh
+        name: do-demo
+        ssh_pub_key: "{{ lookup('file', '~/.ssh/do-demo.pub') }}"
+        api_token: "{{ do_demo_token }}"
+      register: do_demo_key
+
